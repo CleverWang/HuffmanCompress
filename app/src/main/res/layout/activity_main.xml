@@ -25,15 +25,16 @@
                 android:background="@drawable/circle_btn"
                 android:gravity="center"
                 android:textColor="#494a4a"
-                android:textOff="@string/uncompress"
-                android:textOn="@string/compress"
+                android:textOff="@string/compress"
+                android:textOn="@string/uncompress"
                 android:textSize="20sp" />
 
             <ProgressBar
                 android:id="@+id/progressbar"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:layout_centerInParent="true" />
+                android:layout_centerInParent="true"
+                android:max="100" />
 
         </RelativeLayout>
     </LinearLayout>
@@ -54,7 +55,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="8dp">
+                android:padding="5dp">
 
                 <TextView
                     android:layout_width="wrap_content"
