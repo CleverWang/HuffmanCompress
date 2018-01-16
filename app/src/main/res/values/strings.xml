@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">HuffmanCompress</string>
+    <string name="exit">退出</string>
+    <string name="about">关于</string>
+    <string name="compress">压缩</string>
+    <string name="uncompress">解压</string>
+    <string name="file_path">文件路径：</string>
+    <string name="select_path">...</string>
+    <string name="welcome">欢迎使用！！！</string>
+    <string name="start">开始执行</string>
+</resources>
