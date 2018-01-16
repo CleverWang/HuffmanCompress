@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        progressbar.setVisibility(View.GONE);
+        progressbar.setVisibility(View.INVISIBLE);
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.jpg";
 //            String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.txt.huffman/test.txt.compressed";
@@ -96,11 +96,13 @@ public class MainActivity extends AppCompatActivity {
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                progressbar.setVisibility(View.VISIBLE);
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
                     doCompressAndUncompress();
                 }
+//                progressbar.setVisibility(View.GONE);
             }
         });
 
@@ -152,8 +154,10 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         }
-        CompressAndUncompress compressAndUncompress = new CompressAndUncompress(progressbar, text_info);
-        compressAndUncompress.compress(path, destDir + "/" + fileName + ".compressed", destDir + "/" + fileName + ".frequency");
+        CompressAndUncompress compressAndUncompress = new CompressAndUncompress();
+        String returnInfo = compressAndUncompress.compress(path, destDir + "/" + fileName + ".compressed", destDir + "/" + fileName + ".frequency");
+        String info = text_info.getText() + returnInfo;
+        text_info.setText(info);
     }
 
     private void doUncompress(String path) {
@@ -167,8 +171,10 @@ public class MainActivity extends AppCompatActivity {
                 text_info.setText(info);
                 return;
             }
-            CompressAndUncompress compressAndUncompress = new CompressAndUncompress(progressbar, text_info);
-            compressAndUncompress.uncompress(path, dirPath + fileName, freqFile);
+            CompressAndUncompress compressAndUncompress = new CompressAndUncompress();
+            String returnInfo = compressAndUncompress.uncompress(path, dirPath + fileName, freqFile);
+            String info = text_info.getText() + returnInfo;
+            text_info.setText(info);
         } else {
             String info = text_info.getText() + "文件不是本软件产生的压缩文件或命名错误！！！\n";
             text_info.setText(info);
