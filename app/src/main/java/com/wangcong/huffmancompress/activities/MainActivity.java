@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -32,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btn_start;
     private Button btn_about;
     private Button btn_exit;
+    private ScrollView scrollview;
 
     private boolean isCompressMode = true;
 
@@ -54,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         btn_start = findViewById(R.id.btn_start);
         btn_about = findViewById(R.id.btn_about);
         btn_exit = findViewById(R.id.btn_exit);
+        scrollview = findViewById(R.id.scrollview);
     }
 
     private void initData() {
@@ -81,6 +84,12 @@ public class MainActivity extends AppCompatActivity {
                     String info = text_info.getText() + "\n当前模式：解压模式\n";
                     text_info.setText(info);
                 }
+                scrollview.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        scrollview.fullScroll(ScrollView.FOCUS_DOWN);
+                    }
+                });
             }
         });
 
@@ -115,17 +124,23 @@ public class MainActivity extends AppCompatActivity {
         File file = new File(path);
         if (file.exists() && file.isFile() && file.canRead()) {
             if (isCompressMode) {
-                doCompress(path, progressbar, text_info);
+                doCompress(path);
             } else {
-                doUncompress(path, progressbar, text_info);
+                doUncompress(path);
             }
         } else {
             String info = text_info.getText() + "文件不存在或不是文件或文件不可读>_<\n";
             text_info.setText(info);
         }
+        scrollview.post(new Runnable() {
+            @Override
+            public void run() {
+                scrollview.fullScroll(ScrollView.FOCUS_DOWN);
+            }
+        });
     }
 
-    private void doCompress(String path, ProgressBar progressbar, TextView text_info) {
+    private void doCompress(String path) {
         String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
         String fileName = path.substring(path.lastIndexOf('/') + 1);
         String destDir = dirPath + fileName + ".huffman";
@@ -141,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         compressAndUncompress.compress(path, destDir + "/" + fileName + ".compressed", destDir + "/" + fileName + ".frequency");
     }
 
-    private void doUncompress(String path, ProgressBar progressbar, TextView text_info) {
+    private void doUncompress(String path) {
         String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
         String fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf("compressed") - 1);
         String freqFile = dirPath + fileName + ".frequency";
