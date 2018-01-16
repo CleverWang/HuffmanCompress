@@ -43,8 +43,10 @@ public class Decoding {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        String stringCodes = stringBuilder.toString();
-        stringCodes = stringCodes.substring(0, stringCodes.length() - elements.getZeroAddedCount());
+//        String stringCodes = stringBuilder.toString();
+//        stringCodes = stringCodes.substring(0, stringCodes.length() - elements.getZeroAddedCount());
+        stringBuilder.delete(stringBuilder.length() - elements.getZeroAddedCount(), stringBuilder.length());
+
         char temp;
         List<ElementBean> validElementList = elements.getValidElementList();
         HuffmanTreeNode[] huffmanTreeNodes = huffmanTree.getHuffmanTree();
@@ -57,8 +59,8 @@ public class Decoding {
                 FileOutputStream fos = new FileOutputStream(file);
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-                for (int i = 0; i < stringCodes.length(); ++i) {// 从树根开始向下
-                    temp = stringCodes.charAt(i);
+                for (int i = 0; i < stringBuilder.length(); ++i) {// 从树根开始向下
+                    temp = stringBuilder.charAt(i);
                     parent = now;// 保存父结点
                     if (temp == '0')// 如果是0，进入左子树
                         now = huffmanTreeNodes[now.getLeftLink()];

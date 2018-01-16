@@ -49,7 +49,7 @@ public class WritingTool {
             }
             codeLength += 1;
         }
-        String allCodes = stringBuilder.toString();
+//        String allCodes = stringBuilder.toString();
 //        try {
         File file = new File(destPath);
         if (!file.exists()) { // 判断文件是否存在，不存在就创建
@@ -59,7 +59,7 @@ public class WritingTool {
                 char[] oneByte = new char[8]; // 保存一个字节的字符数组
                 for (int i = 0; i < codeLength; ++i) {
                     for (int j = 0; j < 8; ++j) {
-                        oneByte[j] = allCodes.charAt(i * 8 + j);
+                        oneByte[j] = stringBuilder.charAt(i * 8 + j);
                     }
                     bos.write(CodeConversion.charArrayToByte(oneByte)); // 把该字节字符数组转换成字节
                 }

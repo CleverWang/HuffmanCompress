@@ -62,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         progressbar.setVisibility(View.GONE);
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-//            String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.txt";
-            String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.txt.huffman/test.txt.compressed";
+            String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.jpg";
+//            String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.txt.huffman/test.txt.compressed";
             edit_path.setText(path);
             edit_path.setSelection(path.length()
             );
@@ -157,17 +157,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doUncompress(String path) {
-        String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
-        String fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf("compressed") - 1);
-        String freqFile = dirPath + fileName + ".frequency";
-        File file = new File(freqFile);
-        if (!file.exists()) {
-            String info = text_info.getText() + "字节频率文件丢失或命名错误！！！\n";
+        if (path.endsWith(".compressed")) {
+            String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
+            String fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf("compressed") - 1);
+            String freqFile = dirPath + fileName + ".frequency";
+            File file = new File(freqFile);
+            if (!file.exists()) {
+                String info = text_info.getText() + "字节频率文件丢失或命名错误！！！\n";
+                text_info.setText(info);
+                return;
+            }
+            CompressAndUncompress compressAndUncompress = new CompressAndUncompress(progressbar, text_info);
+            compressAndUncompress.uncompress(path, dirPath + fileName, freqFile);
+        } else {
+            String info = text_info.getText() + "文件不是本软件产生的压缩文件或命名错误！！！\n";
             text_info.setText(info);
-            return;
         }
-        CompressAndUncompress compressAndUncompress = new CompressAndUncompress(progressbar, text_info);
-        compressAndUncompress.uncompress(path, dirPath + fileName, freqFile);
     }
 
     private void showAbout() {
