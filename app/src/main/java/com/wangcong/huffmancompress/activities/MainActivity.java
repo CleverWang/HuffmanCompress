@@ -20,9 +20,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.wangcong.huffmancompress.R;
-import com.wangcong.huffmancompress.huffman.CompressAndUncompress;
-
-import java.io.File;
+import com.wangcong.huffmancompress.listeners.UpdateUIListener;
 
 public class MainActivity extends AppCompatActivity {
     private ToggleButton btn_mode_choose;
@@ -36,6 +34,30 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollview;
 
     private boolean isCompressMode = true;
+
+    private UpdateUIListener updateUIListener = new UpdateUIListener() {
+        @Override
+        public void onStart() {
+            progressbar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void onUpdate(String updateInfo) {
+            String info = text_info.getText() + updateInfo;
+            text_info.setText(info);
+            scrollview.post(new Runnable() {
+                @Override
+                public void run() {
+                    scrollview.fullScroll(ScrollView.FOCUS_DOWN);
+                }
+            });
+        }
+
+        @Override
+        public void onFinish() {
+            progressbar.setVisibility(View.INVISIBLE);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +122,9 @@ public class MainActivity extends AppCompatActivity {
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
-                    doCompressAndUncompress();
+//                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, progressbar, text_info, scrollview).execute();
+                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, updateUIListener).execute();
+//                    doCompressAndUncompress();
                 }
 //                progressbar.setVisibility(View.GONE);
             }
@@ -121,7 +145,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void doCompressAndUncompress() {
+
+    /*private void doCompressAndUncompress() {
         String path = edit_path.getText().toString().trim();
         File file = new File(path);
         if (file.exists() && file.isFile() && file.canRead()) {
@@ -179,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
             String info = text_info.getText() + "文件不是本软件产生的压缩文件或命名错误！！！\n";
             text_info.setText(info);
         }
-    }
+    }*/
 
     private void showAbout() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -201,7 +226,9 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    doCompressAndUncompress();
+//                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, progressbar, text_info, scrollview).execute();
+                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, updateUIListener).execute();
+//                    doCompressAndUncompress();
                 } else {
                     Toast.makeText(this, "你拒绝了文件读写权限！！！", Toast.LENGTH_SHORT).show();
                 }
