@@ -94,7 +94,6 @@
                         android:id="@+id/text_info"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/welcome"
                         android:textColor="#ffffff" />
 
                 </ScrollView>

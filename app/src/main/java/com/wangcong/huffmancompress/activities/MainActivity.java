@@ -1,10 +1,18 @@
 package com.wangcong.huffmancompress.activities;
 
 import android.Manifest;
+import android.annotation.TargetApi;
+import android.content.ContentUris;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -21,6 +29,9 @@ import android.widget.ToggleButton;
 
 import com.wangcong.huffmancompress.R;
 import com.wangcong.huffmancompress.listeners.UpdateUIListener;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private ToggleButton btn_mode_choose;
@@ -42,15 +53,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onUpdate(String updateInfo) {
-            String info = text_info.getText() + updateInfo;
-            text_info.setText(info);
-            scrollview.post(new Runnable() {
-                @Override
-                public void run() {
-                    scrollview.fullScroll(ScrollView.FOCUS_DOWN);
-                }
-            });
+        public void onUpdate(String info) {
+//            String info = text_info.getText() + updateInfo;
+//            text_info.setText(info);
+//            scrollview.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    scrollview.fullScroll(ScrollView.FOCUS_DOWN);
+//                }
+//            });
+            updateInfo(info);
         }
 
         @Override
@@ -82,15 +94,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initData() {
+        btn_mode_choose.setChecked(false);
         progressbar.setVisibility(View.INVISIBLE);
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.jpg";
-//            String path = Environment.getExternalStorageDirectory().getPath() + "/Download/test/test.txt.huffman/test.txt.compressed";
+            String path = Environment.getExternalStorageDirectory().getPath();
             edit_path.setText(path);
             edit_path.setSelection(path.length()
             );
         }
-
+        updateInfo("欢迎使用！！！");
+        updateInfo("当前模式：压缩模式\n");
     }
 
     private void initEvent() {
@@ -99,26 +112,17 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (!b) {
                     isCompressMode = true;
-                    String info = text_info.getText() + "\n当前模式：压缩模式\n";
-                    text_info.setText(info);
+                    updateInfo("当前模式：压缩模式\n");
                 } else {
                     isCompressMode = false;
-                    String info = text_info.getText() + "\n当前模式：解压模式\n";
-                    text_info.setText(info);
+                    updateInfo("当前模式：解压模式\n");
                 }
-                scrollview.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        scrollview.fullScroll(ScrollView.FOCUS_DOWN);
-                    }
-                });
             }
         });
 
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                progressbar.setVisibility(View.VISIBLE);
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
@@ -126,7 +130,17 @@ public class MainActivity extends AppCompatActivity {
                     new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, updateUIListener).execute();
 //                    doCompressAndUncompress();
                 }
-//                progressbar.setVisibility(View.GONE);
+            }
+        });
+
+        btn_select_path.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 2);
+                } else {
+                    openResource();
+                }
             }
         });
 
@@ -145,20 +159,87 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void openResource() {
+        Intent intent = new Intent("android.intent.action.GET_CONTENT");
+        intent.setType("*/*");
+        startActivityForResult(intent, 1); // 打开文件管理器
+    }
 
-    /*private void doCompressAndUncompress() {
-        String path = edit_path.getText().toString().trim();
-        File file = new File(path);
-        if (file.exists() && file.isFile() && file.canRead()) {
-            if (isCompressMode) {
-                doCompress(path);
-            } else {
-                doUncompress(path);
-            }
-        } else {
-            String info = text_info.getText() + "文件不存在或不是文件或文件不可读>_<\n";
-            text_info.setText(info);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case 1:
+                if (resultCode == RESULT_OK) {
+                    // 判断手机系统版本号
+                    if (Build.VERSION.SDK_INT >= 19) {
+                        // 4.4及以上系统使用这个方法处理
+                        handleOnKitKat(data);
+                    } else {
+                        // 4.4以下系统使用这个方法处理
+                        handleBeforeKitKat(data);
+                    }
+                }
+                break;
+            default:
+                break;
         }
+    }
+
+    @TargetApi(19)
+    private void handleOnKitKat(Intent data) {
+        String path = null;
+        Uri uri = data.getData();
+//        Log.d("TAG", "handleOnKitKat: uri is " + uri);
+        if (DocumentsContract.isDocumentUri(this, uri)) {
+            // 如果是document类型的Uri，则通过document id处理
+            String docId = DocumentsContract.getDocumentId(uri);
+            if ("com.android.providers.media.documents".equals(uri.getAuthority())) {
+                String id = docId.split(":")[1]; // 解析出数字格式的id
+                String selection = MediaStore.Images.Media._ID + "=" + id;
+                path = getFilePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(docId));
+                path = getFilePath(contentUri, null);
+            }
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            // 如果是content类型的Uri，则使用普通方式处理
+            path = getFilePath(uri, null);
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            // 如果是file类型的Uri，直接获取图片路径即可
+            path = uri.getPath();
+        }
+        setPath(path); // 设置路径
+    }
+
+    private void handleBeforeKitKat(Intent data) {
+        Uri uri = data.getData();
+        String path = getFilePath(uri, null);
+        setPath(path);
+    }
+
+    private String getFilePath(Uri uri, String selection) {
+        String path = null;
+        // 通过Uri和selection来获取真实的图片路径
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+            }
+            cursor.close();
+        }
+        return path;
+    }
+
+    private void setPath(String path) {
+        edit_path.setText(path);
+        edit_path.setSelection(path.length());
+    }
+
+    private void updateInfo(String info) {
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss");
+        String updatedInfo = text_info.getText() + simpleDateFormat.format(date) + "> " + info + "\n";
+        text_info.setText(updatedInfo);
         scrollview.post(new Runnable() {
             @Override
             public void run() {
@@ -166,45 +247,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    private void doCompress(String path) {
-        String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
-        String fileName = path.substring(path.lastIndexOf('/') + 1);
-        String destDir = dirPath + fileName + ".huffman";
-        File dir = new File(destDir);
-        if (!dir.exists()) {
-            if (!dir.mkdir()) {
-                String info = text_info.getText() + "保存压缩文件的文件夹创建失败！！！\n";
-                text_info.setText(info);
-                return;
-            }
-        }
-        CompressAndUncompress compressAndUncompress = new CompressAndUncompress();
-        String returnInfo = compressAndUncompress.compress(path, destDir + "/" + fileName + ".compressed", destDir + "/" + fileName + ".frequency");
-        String info = text_info.getText() + returnInfo;
-        text_info.setText(info);
-    }
-
-    private void doUncompress(String path) {
-        if (path.endsWith(".compressed")) {
-            String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
-            String fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf("compressed") - 1);
-            String freqFile = dirPath + fileName + ".frequency";
-            File file = new File(freqFile);
-            if (!file.exists()) {
-                String info = text_info.getText() + "字节频率文件丢失或命名错误！！！\n";
-                text_info.setText(info);
-                return;
-            }
-            CompressAndUncompress compressAndUncompress = new CompressAndUncompress();
-            String returnInfo = compressAndUncompress.uncompress(path, dirPath + fileName, freqFile);
-            String info = text_info.getText() + returnInfo;
-            text_info.setText(info);
-        } else {
-            String info = text_info.getText() + "文件不是本软件产生的压缩文件或命名错误！！！\n";
-            text_info.setText(info);
-        }
-    }*/
 
     private void showAbout() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -218,7 +260,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         dialog.show();
-
     }
 
     @Override
@@ -229,6 +270,13 @@ public class MainActivity extends AppCompatActivity {
 //                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, progressbar, text_info, scrollview).execute();
                     new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, updateUIListener).execute();
 //                    doCompressAndUncompress();
+                } else {
+                    Toast.makeText(this, "你拒绝了文件读写权限！！！", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 2:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openResource();
                 } else {
                     Toast.makeText(this, "你拒绝了文件读写权限！！！", Toast.LENGTH_SHORT).show();
                 }

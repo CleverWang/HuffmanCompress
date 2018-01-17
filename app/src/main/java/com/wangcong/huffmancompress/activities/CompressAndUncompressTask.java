@@ -69,7 +69,7 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
                 doUncompress(path);
             }
         } else {
-            publishProgress("文件不存在或不是文件或文件不可读>_<\n");
+            publishProgress("文件不存在或不是文件或文件不可读>_<");
         }
         return null;
     }
@@ -88,7 +88,7 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         File dir = new File(destDir);
         if (!dir.exists()) {
             if (!dir.mkdir()) {
-                publishProgress("保存压缩文件的文件夹创建失败！！！\n");
+                publishProgress("保存压缩文件的文件夹创建失败！！！");
                 return;
             }
         }
@@ -101,32 +101,32 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
     private void compressing(String srcFilePath, String destFilePath, String frequencyDestFilePath) {
         Elements elements = new Elements();
         ReadingTool readingTool = new ReadingTool(elements);
-        publishProgress("读取待压缩文件：" + srcFilePath + "\n");
+        publishProgress("读取待压缩文件：" + srcFilePath);
         try {
             readingTool.readRawFile(srcFilePath); // 读原始文件获取字节频率信息
         } catch (Exception e) {
 //            System.out.println(e.getMessage())
-            publishProgress("读取待压缩文件失败：" + e.getMessage() + "\n");
+            publishProgress("读取待压缩文件失败：" + e.getMessage());
         }
 
-        publishProgress("构建哈夫曼树...\n");
+        publishProgress("构建哈夫曼树...");
         HuffmanTree huffmanTree = new HuffmanTree(elements);
         huffmanTree.buildHuffmanTree(); // 构建哈夫曼树
 
-        publishProgress("进行哈夫曼编码...\n");
+        publishProgress("进行哈夫曼编码...");
         Coding coding = new Coding(huffmanTree, elements);
         coding.doCoding(); // 进行哈夫曼编码
 
         WritingTool writingTool = new WritingTool(elements);
         try {
-            publishProgress("写入压缩文件：" + destFilePath + "\n");
+            publishProgress("写入压缩文件：" + destFilePath);
             writingTool.writeCompressedFile(srcFilePath, destFilePath); // 写入编码
 
-            publishProgress("保存字节频率文件：" + frequencyDestFilePath + "\n");
+            publishProgress("保存字节频率文件：" + frequencyDestFilePath);
             writingTool.writeFrequencyFile(frequencyDestFilePath); // 保存字节频率信息
         } catch (Exception e) {
 //            System.out.println(e.getMessage());
-            publishProgress("写入文件失败：" + e.getMessage() + "\n");
+            publishProgress("写入文件失败：" + e.getMessage());
         }
         publishProgress("压缩完成(＾ω＾)\n");
     }
@@ -138,7 +138,7 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
             String freqFile = dirPath + fileName + ".frequency";
             File file = new File(freqFile);
             if (!file.exists()) {
-                publishProgress("字节频率文件丢失或命名错误！！！\n");
+                publishProgress("字节频率文件丢失或命名错误！！！");
                 return;
             }
 //            CompressAndUncompress compressAndUncompress = new CompressAndUncompress();
@@ -146,7 +146,7 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
 //            publishProgress(returnInfo);
             uncompressing(path, dirPath + fileName, freqFile);
         } else {
-            publishProgress("文件不是本软件产生的压缩文件或命名错误！！！\n");
+            publishProgress("文件不是本软件产生的压缩文件或命名错误！！！");
         }
     }
 
@@ -154,25 +154,27 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         Elements elements = new Elements();
         ReadingTool readingTool = new ReadingTool(elements);
 
-        publishProgress("读取字节频率文件：" + frequencySrcFilePath + "\n");
+        publishProgress("读取字节频率文件：" + frequencySrcFilePath);
         try {
             readingTool.loadFromFrequencyFile(frequencySrcFilePath); // 从字节频率文件中加载字节列表
         } catch (Exception e) {
 //            System.out.println(e.getMessage());
-            publishProgress("读取频率文件失败：" + e.getMessage() + "\n");
+            publishProgress("读取频率文件失败：" + e.getMessage());
         }
 
-        publishProgress("重建哈夫曼树...\n");
+        publishProgress("重建哈夫曼树...");
         HuffmanTree huffmanTree = new HuffmanTree(elements);
         huffmanTree.buildHuffmanTree(); // 重建哈夫曼树
 
-        publishProgress("进行解压操作...\n解压文件：" + srcFilePath + "\n到：" + destFilePath + "\n");
+        publishProgress("进行解压操作...");
+        publishProgress("解压文件：" + srcFilePath);
+        publishProgress("到：" + destFilePath);
         Decoding decoding = new Decoding(huffmanTree, elements);
         try {
             decoding.doDecoding(srcFilePath, destFilePath); // 进行解压操作
         } catch (Exception e) {
 //            System.out.println(e.getMessage());
-            publishProgress("解压文件失败：" + e.getMessage() + "\n");
+            publishProgress("解压文件失败：" + e.getMessage());
         }
 
         publishProgress("解压完成(＾ω＾)\n");
