@@ -17,20 +17,9 @@ import java.io.File;
  */
 
 public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
-    //    private ProgressBar progressbar;
-//    private TextView text_info;
-//    private ScrollView scrollview;
-    private boolean isCompressMode;
-    private String edit_path;
-    private UpdateUIListener updateUIListener;
-
-//    public CompressAndUncompressTask(String edit_path, boolean isCompressMode, ProgressBar progressbar, TextView text_info, ScrollView scrollview) {
-//        this.edit_path = edit_path;
-//        this.isCompressMode = isCompressMode;
-//        this.progressbar = progressbar;
-//        this.text_info = text_info;
-//        this.scrollview = scrollview;
-//    }
+    private boolean isCompressMode; // 当前模式
+    private String edit_path; // 文件绝对路径
+    private UpdateUIListener updateUIListener; // UI操作监听器
 
     public CompressAndUncompressTask(String edit_path, boolean isCompressMode, UpdateUIListener updateUIListener) {
         this.edit_path = edit_path;
@@ -40,20 +29,11 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
 
     @Override
     protected void onPreExecute() {
-//        progressbar.setVisibility(View.VISIBLE);
         updateUIListener.onStart();
     }
 
     @Override
     protected void onProgressUpdate(String... values) {
-//        String info = text_info.getText() + values[0];
-//        text_info.setText(info);
-//        scrollview.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                scrollview.fullScroll(ScrollView.FOCUS_DOWN);
-//            }
-//        });
         updateUIListener.onUpdate(values[0]);
     }
 
@@ -77,10 +57,14 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
 
     @Override
     protected void onPostExecute(Void s) {
-//        progressbar.setVisibility(View.INVISIBLE);
         updateUIListener.onFinish();
     }
 
+    /**
+     * 开始执行压缩操作
+     *
+     * @param path 待压缩文件绝对路径
+     */
     private void doCompress(String path) {
         String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
         String fileName = path.substring(path.lastIndexOf('/') + 1);
@@ -92,20 +76,24 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
                 return;
             }
         }
-//        CompressAndUncompress compressAndUncompress = new CompressAndUncompress();
-//        String returnInfo = compressAndUncompress.compress(path, destDir + "/" + fileName + ".compressed", destDir + "/" + fileName + ".frequency");
-//        publishProgress(returnInfo);
         compressing(path, destDir + "/" + fileName + ".compressed", destDir + "/" + fileName + ".frequency");
     }
 
+    /**
+     * 执行压缩操作
+     *
+     * @param srcFilePath           待压缩文件绝对路径
+     * @param destFilePath          压缩文件的绝对路径
+     * @param frequencyDestFilePath 保存字节频率文件的绝对路径
+     */
     private void compressing(String srcFilePath, String destFilePath, String frequencyDestFilePath) {
         Elements elements = new Elements();
+
         ReadingTool readingTool = new ReadingTool(elements);
         publishProgress("读取待压缩文件：" + srcFilePath);
         try {
             readingTool.readRawFile(srcFilePath); // 读原始文件获取字节频率信息
         } catch (Exception e) {
-//            System.out.println(e.getMessage())
             publishProgress("读取待压缩文件失败：" + e.getMessage());
         }
 
@@ -125,12 +113,16 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
             publishProgress("保存字节频率文件：" + frequencyDestFilePath);
             writingTool.writeFrequencyFile(frequencyDestFilePath); // 保存字节频率信息
         } catch (Exception e) {
-//            System.out.println(e.getMessage());
             publishProgress("写入文件失败：" + e.getMessage());
         }
         publishProgress("压缩完成(＾ω＾)\n");
     }
 
+    /**
+     * 开始执行解压操作
+     *
+     * @param path 待解压文件的绝对路径
+     */
     private void doUncompress(String path) {
         if (path.endsWith(".compressed")) {
             String dirPath = path.substring(0, path.lastIndexOf('/') + 1);
@@ -141,15 +133,19 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
                 publishProgress("字节频率文件丢失或命名错误！！！");
                 return;
             }
-//            CompressAndUncompress compressAndUncompress = new CompressAndUncompress();
-//            String returnInfo = compressAndUncompress.uncompress(path, dirPath + fileName, freqFile);
-//            publishProgress(returnInfo);
             uncompressing(path, dirPath + fileName, freqFile);
         } else {
             publishProgress("文件不是本软件产生的压缩文件或命名错误！！！");
         }
     }
 
+    /**
+     * 执行解压操作
+     *
+     * @param srcFilePath          待解压文件的绝对路径
+     * @param destFilePath         解压后文件的绝对路径
+     * @param frequencySrcFilePath 字节频率文件的绝对路径
+     */
     private void uncompressing(String srcFilePath, String destFilePath, String frequencySrcFilePath) {
         Elements elements = new Elements();
         ReadingTool readingTool = new ReadingTool(elements);
@@ -158,7 +154,6 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         try {
             readingTool.loadFromFrequencyFile(frequencySrcFilePath); // 从字节频率文件中加载字节列表
         } catch (Exception e) {
-//            System.out.println(e.getMessage());
             publishProgress("读取频率文件失败：" + e.getMessage());
         }
 
@@ -173,7 +168,6 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         try {
             decoding.doDecoding(srcFilePath, destFilePath); // 进行解压操作
         } catch (Exception e) {
-//            System.out.println(e.getMessage());
             publishProgress("解压文件失败：" + e.getMessage());
         }
 

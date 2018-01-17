@@ -25,8 +25,8 @@
                 android:background="@drawable/circle_btn"
                 android:gravity="center"
                 android:textColor="#494a4a"
-                android:textOff="@string/compress"
-                android:textOn="@string/uncompress"
+                android:textOff="@string/uncompress"
+                android:textOn="@string/compress"
                 android:textSize="20sp" />
 
             <ProgressBar

@@ -34,40 +34,32 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
-    private ToggleButton btn_mode_choose;
-    private ProgressBar progressbar;
-    private EditText edit_path;
-    private Button btn_select_path;
-    private TextView text_info;
-    private Button btn_start;
-    private Button btn_about;
-    private Button btn_exit;
-    private ScrollView scrollview;
+    private ToggleButton btn_mode_choose; // 模式选择（OFF是压缩，ON是解压）
+    private ProgressBar progressbar; // 进度环
+    private EditText edit_path; // 路径输入框
+    private Button btn_select_path; // 文件选择按钮
+    private TextView text_info; // 解压缩时状态信息显示区域
+    private Button btn_start; // 开始执行解压缩操作
+    private Button btn_about; // 关于按钮
+    private Button btn_exit; // 退出按钮
+    private ScrollView scrollview; // 滚动控件
 
-    private boolean isCompressMode = true;
+    private boolean isCompressMode = true; // 是否是压缩模式标志位
 
-    private UpdateUIListener updateUIListener = new UpdateUIListener() {
+    private UpdateUIListener updateUIListener = new UpdateUIListener() { // UI操作监听器实例
         @Override
         public void onStart() {
-            progressbar.setVisibility(View.VISIBLE);
+            progressbar.setVisibility(View.VISIBLE); // 显示进度环
         }
 
         @Override
         public void onUpdate(String info) {
-//            String info = text_info.getText() + updateInfo;
-//            text_info.setText(info);
-//            scrollview.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    scrollview.fullScroll(ScrollView.FOCUS_DOWN);
-//                }
-//            });
-            updateInfo(info);
+            updateInfo(info); // 更新信息显示区
         }
 
         @Override
         public void onFinish() {
-            progressbar.setVisibility(View.INVISIBLE);
+            progressbar.setVisibility(View.INVISIBLE); // 关闭进度环
         }
     };
 
@@ -81,6 +73,9 @@ public class MainActivity extends AppCompatActivity {
         initEvent();
     }
 
+    /**
+     * 绑定视图
+     */
     private void bindView() {
         btn_mode_choose = findViewById(R.id.btn_mode_choose);
         progressbar = findViewById(R.id.progressbar);
@@ -93,10 +88,13 @@ public class MainActivity extends AppCompatActivity {
         scrollview = findViewById(R.id.scrollview);
     }
 
+    /**
+     * 初始化视图或数据
+     */
     private void initData() {
-        btn_mode_choose.setChecked(false);
+        btn_mode_choose.setChecked(false); // 初始是压缩模式
         progressbar.setVisibility(View.INVISIBLE);
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) { // 初始置入外存根目录
             String path = Environment.getExternalStorageDirectory().getPath();
             edit_path.setText(path);
             edit_path.setSelection(path.length()
@@ -106,7 +104,11 @@ public class MainActivity extends AppCompatActivity {
         updateInfo("当前模式：压缩模式\n");
     }
 
+    /**
+     * 设置视图监听器
+     */
     private void initEvent() {
+        // 模式选择按钮监听器
         btn_mode_choose.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -120,19 +122,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 开始执行按钮监听器
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // 运行时权限获取
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
                 } else {
 //                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, progressbar, text_info, scrollview).execute();
+                    // 执行后台解压缩任务
                     new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, updateUIListener).execute();
 //                    doCompressAndUncompress();
                 }
             }
         });
 
+        // 选择文件按钮监听器
         btn_select_path.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -144,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 关于按钮监听器
         btn_about.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -151,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 退出按钮监听器
         btn_exit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -159,10 +167,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * 请求系统内容提供器，通过选择文件来获取其路径
+     */
     private void openResource() {
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setType("*/*");
-        startActivityForResult(intent, 1); // 打开文件管理器
+        startActivityForResult(intent, 1);
     }
 
     @Override
@@ -185,11 +196,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 4.4及以上系统使用这个方法处理返回的文件路径信息
+     *
+     * @param data 文件路径信息
+     */
     @TargetApi(19)
     private void handleOnKitKat(Intent data) {
         String path = null;
         Uri uri = data.getData();
-//        Log.d("TAG", "handleOnKitKat: uri is " + uri);
         if (DocumentsContract.isDocumentUri(this, uri)) {
             // 如果是document类型的Uri，则通过document id处理
             String docId = DocumentsContract.getDocumentId(uri);
@@ -211,15 +226,27 @@ public class MainActivity extends AppCompatActivity {
         setPath(path); // 设置路径
     }
 
+    /**
+     * 4.4以下系统使用这个方法处理返回的文件路径信息
+     *
+     * @param data 文件路径信息
+     */
     private void handleBeforeKitKat(Intent data) {
         Uri uri = data.getData();
         String path = getFilePath(uri, null);
         setPath(path);
     }
 
+    /**
+     * 通过URI获取文件绝对路径
+     *
+     * @param uri
+     * @param selection
+     * @return
+     */
     private String getFilePath(Uri uri, String selection) {
         String path = null;
-        // 通过Uri和selection来获取真实的图片路径
+        // 通过Uri和selection来获取真实的路径
         Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -230,14 +257,24 @@ public class MainActivity extends AppCompatActivity {
         return path;
     }
 
+    /**
+     * 把选择好的路径设置到输入框
+     *
+     * @param path 文件路径
+     */
     private void setPath(String path) {
         edit_path.setText(path);
         edit_path.setSelection(path.length());
     }
 
+    /**
+     * 更新信息显示区
+     *
+     * @param info 需要显示的信息
+     */
     private void updateInfo(String info) {
         Date date = new Date();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
         String updatedInfo = text_info.getText() + simpleDateFormat.format(date) + "> " + info + "\n";
         text_info.setText(updatedInfo);
         scrollview.post(new Runnable() {
@@ -248,10 +285,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * 展示关于对话框
+     */
     private void showAbout() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("关于");
-        dialog.setMessage("基于哈夫曼编码的简单压缩与解压软件。");
+        dialog.setMessage("一款基于哈夫曼编码的简单压缩与解压软件。（作者：王聪  联系方式：1330792337@qq.com）");
         dialog.setIcon(R.drawable.ic_info_black_48dp);
         dialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
@@ -262,6 +302,13 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    /**
+     * 运行时权限申请
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {

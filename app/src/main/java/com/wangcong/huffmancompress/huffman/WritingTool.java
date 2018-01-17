@@ -1,11 +1,13 @@
 package com.wangcong.huffmancompress.huffman;
 
-import android.util.Log;
-
 import com.wangcong.huffmancompress.beans.ElementBean;
 import com.wangcong.huffmancompress.utils.CodeConversion;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.List;
 
 /**
@@ -13,7 +15,7 @@ import java.util.List;
  */
 public class WritingTool {
     private Elements elements; // 字节列表
-    private final long ONEMB = 1024 * 1024;
+    private final long ONEMB = 1024 * 1024; // 1M字节数量
 
     public WritingTool(Elements elements) {
         this.elements = elements;
@@ -35,13 +37,23 @@ public class WritingTool {
         }
     }
 
+    /**
+     * 压缩小文件（字节数不超过1MB）
+     *
+     * @param srcPath  待压缩文件的绝对路径
+     * @param destPath 压缩后的文件的路径
+     * @throws Exception
+     */
     private void writeSmallCompressedFile(String srcPath, String destPath) throws Exception {
-        Log.d("TEST", "writeSmallCompressedFile: ");
+//        Log.d("TEST", "writeSmallCompressedFile: ");
         ElementBean rawElementList[] = elements.getRawElementList();
+
         StringBuilder stringBuilder = new StringBuilder(); // 保存压缩文件的字符串形式
+
         //构造文件输入流
         FileInputStream fis = new FileInputStream(srcPath);
         BufferedInputStream bis = new BufferedInputStream(fis);
+
         //读取文件
         int value = bis.read();
         while (value != -1) {
@@ -88,8 +100,16 @@ public class WritingTool {
 //        }
     }
 
+    /**
+     * 压缩大文件（字节数超过1MB）
+     *
+     * @param srcPath    待压缩文件的绝对路径
+     * @param destPath   压缩后的文件的路径
+     * @param fileLength 待压缩文件的字节数
+     * @throws Exception
+     */
     private void writeLargeCompressedFile(String srcPath, String destPath, long fileLength) throws Exception {
-        Log.d("TEST", "writeLargeCompressedFile: ");
+//        Log.d("TEST", "writeLargeCompressedFile: ");
         ElementBean rawElementList[] = elements.getRawElementList();
 
         //构造文件输入流
@@ -97,30 +117,29 @@ public class WritingTool {
         BufferedInputStream bis = new BufferedInputStream(fis);
 
         //构建文件输出流
-        FileOutputStream fos;
-        BufferedOutputStream bos;
         File file = new File(destPath);
         if (!file.exists()) { // 判断文件是否存在，不存在就创建
             if (!file.createNewFile()) {
                 return;
             }
         }
-        fos = new FileOutputStream(file);
-        bos = new BufferedOutputStream(fos);
+        FileOutputStream fos = new FileOutputStream(file);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-        long countMB = fileLength / ONEMB;
+        long countMB = fileLength / ONEMB; // 文件的MB数
         long count = 1;
-        int value, codeLength;
-        String leftString = "";
-        char[] oneByte = new char[8]; // 保存一个字节的字符数组
-        while (count <= countMB) {
+        int value, codeLength; // 暂存当前读取的字节，写入的字节数
+        String leftString = ""; // 每次处理剩余的字符串
+        char[] oneByte = new char[8]; // 保存一个字节信息的字符数组
+
+        while (count <= countMB) { // 每次处理1MB
             StringBuilder stringBuilder = new StringBuilder(leftString); // 保存压缩文件的字符串形式
-            for (int i = 0; i < ONEMB; i++) {
+            for (int i = 0; i < ONEMB; i++) { // 读取1MB
                 value = bis.read();
                 stringBuilder.append(rawElementList[value].getCode()); // 获取该字节对应哈夫曼编码字符串
             }
-            codeLength = stringBuilder.length() / 8; // 写入的字节数
-            leftString = stringBuilder.substring(codeLength * 8);
+            codeLength = stringBuilder.length() / 8;
+            leftString = stringBuilder.substring(codeLength * 8); // 保存每次处理剩余的字符串
             for (int i = 0; i < codeLength; ++i) {
                 for (int j = 0; j < 8; ++j) {
                     oneByte[j] = stringBuilder.charAt(i * 8 + j);
@@ -130,8 +149,9 @@ public class WritingTool {
             bos.flush();
             ++count;
         }
+
+        // 处理剩余字节
         StringBuilder stringBuilder = new StringBuilder(leftString);
-        //读取文件
         value = bis.read();
         while (value != -1) {
             stringBuilder.append(rawElementList[value].getCode()); // 获取该字节对应哈夫曼编码字符串
@@ -170,7 +190,7 @@ public class WritingTool {
         List<ElementBean> validElementList = elements.getValidElementList();
 //        try {
         File file = new File(path);
-        if (!file.exists()) {// 判断文件是否存在，不存在就创建
+        if (!file.exists()) { // 判断文件是否存在，不存在就创建
             if (!file.createNewFile()) {
                 return;
             }
