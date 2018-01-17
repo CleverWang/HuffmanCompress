@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class WritingTool {
     private Elements elements; // 字节列表
+    private final long ONEMB = 1024 * 1024;
 
     public WritingTool(Elements elements) {
         this.elements = elements;
@@ -23,9 +24,18 @@ public class WritingTool {
      * @param destPath 压缩后的文件的路径
      */
     public void writeCompressedFile(String srcPath, String destPath) throws Exception {
+        File srcFile = new File(srcPath);
+        long fileLength = srcFile.length();
+        if (fileLength <= ONEMB) {
+            writeSmallCompressedFile(srcPath, destPath);
+        } else {
+            writeLargeCompressedFile(srcPath, destPath, fileLength);
+        }
+    }
+
+    private void writeSmallCompressedFile(String srcPath, String destPath) throws Exception {
         ElementBean rawElementList[] = elements.getRawElementList();
         StringBuilder stringBuilder = new StringBuilder(); // 保存压缩文件的字符串形式
-//        try {
         //构造文件输入流
         FileInputStream fis = new FileInputStream(srcPath);
         BufferedInputStream bis = new BufferedInputStream(fis);
@@ -71,6 +81,77 @@ public class WritingTool {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
+    }
+
+    private void writeLargeCompressedFile(String srcPath, String destPath, long fileLength) throws Exception {
+        ElementBean rawElementList[] = elements.getRawElementList();
+
+        //构造文件输入流
+        FileInputStream fis = new FileInputStream(srcPath);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+
+        //构建文件输出流
+        FileOutputStream fos = null;
+        BufferedOutputStream bos = null;
+        File file = new File(destPath);
+        if (!file.exists()) { // 判断文件是否存在，不存在就创建
+            if (file.createNewFile()) {
+                fos = new FileOutputStream(file);
+                bos = new BufferedOutputStream(fos);
+            }
+        }
+
+        long countMB = fileLength / ONEMB;
+        long count = 1;
+        int value, codeLength;
+        String leftString = "";
+        char[] oneByte = new char[8]; // 保存一个字节的字符数组
+        while (count <= countMB) {
+            StringBuilder stringBuilder = new StringBuilder(leftString); // 保存压缩文件的字符串形式
+            for (int i = 0; i < ONEMB; i++) {
+                value = bis.read();
+                stringBuilder.append(rawElementList[value].getCode()); // 获取该字节对应哈夫曼编码字符串
+            }
+            codeLength = stringBuilder.length() / 8; // 写入的字节数
+            leftString = stringBuilder.substring(codeLength * 8);
+            for (int i = 0; i < codeLength; ++i) {
+                for (int j = 0; j < 8; ++j) {
+                    oneByte[j] = stringBuilder.charAt(i * 8 + j);
+                }
+                bos.write(CodeConversion.charArrayToByte(oneByte)); // 把该字节字符数组转换成字节
+            }
+            bos.flush();
+            ++count;
+        }
+        StringBuilder stringBuilder = new StringBuilder(leftString);
+        //读取文件
+        value = bis.read();
+        while (value != -1) {
+            stringBuilder.append(rawElementList[value].getCode()); // 获取该字节对应哈夫曼编码字符串
+            value = bis.read();
+        }
+        //关闭流
+        bis.close();
+        fis.close();
+
+        codeLength = stringBuilder.length() / 8; // 写入的字节数
+        int left = stringBuilder.length() % 8; // 最后一个字节的有效位数
+        if (left != 0) { // 位数不足8位，需要添加0
+            elements.setZeroAddedCount(8 - left);
+            for (int i = 0; i < 8 - left; ++i) {
+                stringBuilder.append('0');
+            }
+            codeLength += 1;
+        }
+        for (int i = 0; i < codeLength; ++i) {
+            for (int j = 0; j < 8; ++j) {
+                oneByte[j] = stringBuilder.charAt(i * 8 + j);
+            }
+            bos.write(CodeConversion.charArrayToByte(oneByte)); // 把该字节字符数组转换成字节
+        }
+        bos.flush();
+        bos.close();
+        fos.close();
     }
 
     /**
