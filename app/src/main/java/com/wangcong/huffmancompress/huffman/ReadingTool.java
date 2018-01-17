@@ -40,6 +40,7 @@ public class ReadingTool {
         }
         //关闭流
         fis.close();
+        bis.close();
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
@@ -72,6 +73,7 @@ public class ReadingTool {
         }
         //关闭流
         fis.close();
+        bis.close();
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }

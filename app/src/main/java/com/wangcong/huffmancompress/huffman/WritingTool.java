@@ -1,5 +1,7 @@
 package com.wangcong.huffmancompress.huffman;
 
+import android.util.Log;
+
 import com.wangcong.huffmancompress.beans.ElementBean;
 import com.wangcong.huffmancompress.utils.CodeConversion;
 
@@ -34,6 +36,7 @@ public class WritingTool {
     }
 
     private void writeSmallCompressedFile(String srcPath, String destPath) throws Exception {
+        Log.d("TEST", "writeSmallCompressedFile: ");
         ElementBean rawElementList[] = elements.getRawElementList();
         StringBuilder stringBuilder = new StringBuilder(); // 保存压缩文件的字符串形式
         //构造文件输入流
@@ -47,6 +50,7 @@ public class WritingTool {
         }
         //关闭流
         fis.close();
+        bis.close();
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
@@ -63,27 +67,29 @@ public class WritingTool {
 //        try {
         File file = new File(destPath);
         if (!file.exists()) { // 判断文件是否存在，不存在就创建
-            if (file.createNewFile()) {
-                FileOutputStream fos = new FileOutputStream(file);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
-                char[] oneByte = new char[8]; // 保存一个字节的字符数组
-                for (int i = 0; i < codeLength; ++i) {
-                    for (int j = 0; j < 8; ++j) {
-                        oneByte[j] = stringBuilder.charAt(i * 8 + j);
-                    }
-                    bos.write(CodeConversion.charArrayToByte(oneByte)); // 把该字节字符数组转换成字节
-                }
-                bos.flush();
-                bos.close();
-                fos.close();
+            if (!file.createNewFile()) {
+                return;
             }
         }
+        FileOutputStream fos = new FileOutputStream(file);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        char[] oneByte = new char[8]; // 保存一个字节的字符数组
+        for (int i = 0; i < codeLength; ++i) {
+            for (int j = 0; j < 8; ++j) {
+                oneByte[j] = stringBuilder.charAt(i * 8 + j);
+            }
+            bos.write(CodeConversion.charArrayToByte(oneByte)); // 把该字节字符数组转换成字节
+        }
+        bos.flush();
+        fos.close();
+        bos.close();
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
     }
 
     private void writeLargeCompressedFile(String srcPath, String destPath, long fileLength) throws Exception {
+        Log.d("TEST", "writeLargeCompressedFile: ");
         ElementBean rawElementList[] = elements.getRawElementList();
 
         //构造文件输入流
@@ -91,15 +97,16 @@ public class WritingTool {
         BufferedInputStream bis = new BufferedInputStream(fis);
 
         //构建文件输出流
-        FileOutputStream fos = null;
-        BufferedOutputStream bos = null;
+        FileOutputStream fos;
+        BufferedOutputStream bos;
         File file = new File(destPath);
         if (!file.exists()) { // 判断文件是否存在，不存在就创建
-            if (file.createNewFile()) {
-                fos = new FileOutputStream(file);
-                bos = new BufferedOutputStream(fos);
+            if (!file.createNewFile()) {
+                return;
             }
         }
+        fos = new FileOutputStream(file);
+        bos = new BufferedOutputStream(fos);
 
         long countMB = fileLength / ONEMB;
         long count = 1;
@@ -131,8 +138,8 @@ public class WritingTool {
             value = bis.read();
         }
         //关闭流
-        bis.close();
         fis.close();
+        bis.close();
 
         codeLength = stringBuilder.length() / 8; // 写入的字节数
         int left = stringBuilder.length() % 8; // 最后一个字节的有效位数
@@ -150,8 +157,8 @@ public class WritingTool {
             bos.write(CodeConversion.charArrayToByte(oneByte)); // 把该字节字符数组转换成字节
         }
         bos.flush();
-        bos.close();
         fos.close();
+        bos.close();
     }
 
     /**
@@ -164,18 +171,19 @@ public class WritingTool {
 //        try {
         File file = new File(path);
         if (!file.exists()) {// 判断文件是否存在，不存在就创建
-            if (file.createNewFile()) {
-                FileOutputStream fos = new FileOutputStream(file);
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
-                for (ElementBean bean : validElementList) { // 写入字节频率
-                    bos.write((bean.getElement() + " " + bean.getFrequency() + "\n").getBytes());
-                }
-                bos.write(("-1 " + elements.getZeroAddedCount()).getBytes()); // 写入补0的个数
-                bos.flush();
-                bos.close();
-                fos.close();
+            if (!file.createNewFile()) {
+                return;
             }
         }
+        FileOutputStream fos = new FileOutputStream(file);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        for (ElementBean bean : validElementList) { // 写入字节频率
+            bos.write((bean.getElement() + " " + bean.getFrequency() + "\n").getBytes());
+        }
+        bos.write(("-1 " + elements.getZeroAddedCount()).getBytes()); // 写入补0的个数
+        bos.flush();
+        fos.close();
+        bos.close();
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
