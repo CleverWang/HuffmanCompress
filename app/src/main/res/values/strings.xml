@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HuffmanCompress</string>
+    <string name="app_name">哈夫曼压缩与解压</string>
     <string name="exit">退出</string>
     <string name="about">关于</string>
     <string name="compress">压缩</string>
