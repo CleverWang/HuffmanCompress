@@ -1,0 +1,95 @@
+@startuml
+class ElementBean {
+    - int element
+    - long frequency
+    - boolean isValid
+    - String code
+}
+
+class HuffmanTreeNode {
+    - long weight
+    - int parent, leftLink, rightLink
+}
+
+class Coding {
+    - HuffmanTree huffmanTree
+    - Elements elements
+    + void doCoding()
+}
+
+class Decoding {
+    - HuffmanTree huffmanTree
+    - Elements elements
+    + void doDecoding(String srcPath, String destPath)
+}
+
+class Elements {
+    - ElementBean rawElementList[]-
+    - List<ElementBean> validElementList
+    - int validElementCount
+    - int zeroAddedCount
+}
+
+class HuffmanTree {
+    - int leafCount
+    - int root
+    - HuffmanTreeNode huffmanTree[]
+    - List<ElementBean> validElementList
+    + void buildHuffmanTree()
+}
+
+class ReadingTool {
+    - Elements elements
+    + void readRawFile(String path)
+    + void loadFromFrequencyFile(String path)
+}
+
+class WritingTool {
+    - Elements elements
+    + void writeCompressedFile(String srcPath, String destPath)
+    + void writeFrequencyFile(String path)
+}
+
+class CodeConversion {
+    + {static} int charArrayToByte(char[] charCode)
+    + {static} String ByteToString(int byteCode)
+}
+
+ElementBean "n"--*"1" Elements
+HuffmanTreeNode "n"--*"1" HuffmanTree
+Elements --o HuffmanTree
+Elements --o Coding
+HuffmanTree --o Coding
+Elements --o Decoding
+HuffmanTree --o Decoding
+Elements --o ReadingTool
+Elements --o WritingTool
+CodeConversion -- WritingTool
+CodeConversion -- Decoding
+
+@enduml
+
+
+abstract class AbstractList
+abstract AbstractCollection
+interface List
+interface Collection
+
+List <|-- AbstractList
+Collection <|-- AbstractCollection
+
+Collection <|- List
+AbstractCollection <|- AbstractList
+AbstractList <|-- ArrayList
+
+class ArrayList {
+Object[] elementData
+size()
+}
+
+enum TimeUnit {
+DAYS
+HOURS
+MINUTES
+}
+
