@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 写文件工具
@@ -34,6 +36,7 @@ public class WritingTool {
             writeSmallCompressedFile(srcPath, destPath);
         } else {
             writeLargeCompressedFile(srcPath, destPath, fileLength);
+//            writeCompressedFileInProducerConsumerMode(srcPath, destPath);
         }
     }
 
@@ -208,5 +211,121 @@ public class WritingTool {
 //            e.printStackTrace();
 //        }
     }
+
+    @Deprecated
+    private final int QUEUESIZE = 1024 * 1024 * 8;
+    @Deprecated
+    private final Character ENDOFFILE = '2';
+
+    /**
+     * 利用生产者-消费者模式进行压缩操作（运行速度反而更慢，why？？？）
+     *
+     * @param srcPath
+     * @param destPath
+     * @throws InterruptedException
+     */
+    @Deprecated
+    private void writeCompressedFileInProducerConsumerMode(final String srcPath, final String destPath) throws Exception {
+//        Log.d("DEBUG", "writeCompressedFileInProducerConsumerMode: ");
+        final ElementBean rawElementList[] = elements.getRawElementList();
+        final BlockingQueue<Character> blockingDeque = new LinkedBlockingQueue<>(QUEUESIZE); // 阻塞队列
+
+        // 生产者线程
+        Thread producer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //构造文件输入流
+                    FileInputStream fis = new FileInputStream(srcPath);
+                    BufferedInputStream bis = new BufferedInputStream(fis);
+
+                    //读取文件
+                    String temp;
+                    int value = bis.read();
+                    while (value != -1) {
+                        temp = rawElementList[value].getCode(); // 获取该字节对应哈夫曼编码字符串
+                        for (int i = 0, length = temp.length(); i < length; i++) {
+                            blockingDeque.put(temp.charAt(i)); // 不断放入字符
+                        }
+                        value = bis.read();
+                    }
+                    // 放入文件结束标志字符
+                    blockingDeque.put(ENDOFFILE);
+                    //关闭流
+                    fis.close();
+                    bis.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+        // 消费者线程
+        Thread consumer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    File file = new File(destPath);
+                    if (!file.exists()) { // 判断文件是否存在，不存在就创建
+                        if (!file.createNewFile()) {
+                            return;
+                        }
+                    }
+                    FileOutputStream fos = new FileOutputStream(file);
+                    BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+                    StringBuilder stringBuilder = null;
+                    boolean isOver = false; // 是否结束标志
+                    char temp = blockingDeque.take();
+//                    Log.d("DEBUG", "run: " + temp);
+                    while (temp != ENDOFFILE) {
+                        stringBuilder = new StringBuilder();
+                        stringBuilder.append(temp);
+                        for (int i = 0; i < 7; i++) { // 提取8个字符
+                            temp = blockingDeque.take();
+//                            Log.d("DEBUG", "run: " + temp);
+                            if (temp == ENDOFFILE) {
+                                isOver = true;
+                                break;
+                            } else {
+                                stringBuilder.append(temp);
+                            }
+                        }
+                        if (isOver) {
+                            break;
+                        } else {
+//                            Log.d("DEBUG", "run: " + stringBuilder.length());
+                            bos.write(CodeConversion.stringToByte(stringBuilder.toString())); // 把该字节字符数组转换成字节
+                            temp = blockingDeque.take();
+                        }
+                    }
+                    int leftCodeLength = stringBuilder.length(); // 剩余字符串
+//                    Log.d("DEBUG", "run: " + leftCodeLength);
+                    if (leftCodeLength < 8) {
+                        elements.setZeroAddedCount(8 - leftCodeLength);
+                        for (int i = 0; i < 8 - leftCodeLength; i++) {
+                            stringBuilder.append('0');
+                        }
+                        bos.write(CodeConversion.stringToByte(stringBuilder.toString()));
+                    }
+                    bos.flush();
+                    fos.close();
+                    bos.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        // 启动线程
+        producer.start();
+        consumer.start();
+
+        // 等待线程结束
+        producer.join();
+        consumer.join();
+    }
+
 
 }

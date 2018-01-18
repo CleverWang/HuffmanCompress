@@ -1,5 +1,7 @@
 package com.wangcong.huffmancompress.huffman;
 
+import android.util.Log;
+
 import com.wangcong.huffmancompress.beans.ElementBean;
 import com.wangcong.huffmancompress.beans.HuffmanTreeNode;
 import com.wangcong.huffmancompress.utils.CodeConversion;
@@ -10,6 +12,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 根据哈夫曼树进行解码
@@ -37,8 +41,10 @@ public class Decoding {
             doSmallFileDecoding(srcPath, destPath);
         } else {
             doLargeFileDecoding(srcPath, destPath, fileLength);
+//            doDecodingInProducerConsumerMode(srcPath, destPath);
         }
     }
+
 
     /**
      * 解压小文件（字节数不超过1M）
@@ -201,6 +207,109 @@ public class Decoding {
         bos.flush();
         fos.close();
         bos.close();
+    }
+
+    @Deprecated
+    private final int QUEUESIZE = 1024 * 1024 * 8;
+    @Deprecated
+    private final Character ENDOFFILE = '2';
+
+    /**
+     * 利用生产者-消费者模式进行解压操作（运行速度反而更慢，why？？？）
+     *
+     * @param srcPath
+     * @param destPath
+     * @throws Exception
+     */
+    @Deprecated
+    private void doDecodingInProducerConsumerMode(final String srcPath, final String destPath) throws Exception {
+        Log.d("DEBUG", "doDecodingInProducerConsumerMode: ");
+        final BlockingQueue<Character> blockingQueue = new LinkedBlockingQueue<>(QUEUESIZE);
+
+        Thread producer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    FileInputStream fis = new FileInputStream(srcPath);
+                    BufferedInputStream bis = new BufferedInputStream(fis);
+                    String temp = null;
+                    int value = bis.read();
+                    int nextValue;
+                    while (value != -1) {
+                        nextValue = bis.read();
+                        if (nextValue == -1) {
+                            break;
+                        }
+                        temp = CodeConversion.ByteToString(value); // 将字节转换成字符串
+                        for (int i = 0; i < 8; i++) {
+                            blockingQueue.put(temp.charAt(i));
+                        }
+                        value = nextValue;
+                    }
+                    temp = CodeConversion.ByteToString(value);
+                    temp = temp.substring(0, 8 - elements.getZeroAddedCount());
+                    for (int i = 0, length = temp.length(); i < length; i++) {
+                        blockingQueue.put(temp.charAt(i));
+                    }
+                    blockingQueue.put(ENDOFFILE);
+                    fis.close();
+                    bis.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Thread consumer = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    char temp;
+                    List<ElementBean> validElementList = elements.getValidElementList();
+                    HuffmanTreeNode[] huffmanTreeNodes = huffmanTree.getHuffmanTree();
+                    HuffmanTreeNode now = huffmanTreeNodes[huffmanTree.getRoot()]; // 初始化为树根
+                    HuffmanTreeNode parent; // 父节点
+                    File file = new File(destPath);
+                    if (!file.exists()) {
+                        if (!file.createNewFile()) {
+                            return;
+                        }
+                    }
+                    FileOutputStream fos = new FileOutputStream(file);
+                    BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+                    while (true) { // 从树根开始向下
+                        temp = blockingQueue.take();
+                        if (temp == ENDOFFILE)
+                            break;
+                        parent = now; // 保存父结点
+                        if (temp == '0') // 如果是0，进入左子树
+                            now = huffmanTreeNodes[now.getLeftLink()];
+                        else
+                            now = huffmanTreeNodes[now.getRightLink()]; // 如果是1，进入右子树
+                        if (now.getLeftLink() == -1 && now.getRightLink() == -1) { // 到达叶子节点，找到对应字节
+                            // 写入字节
+                            if (temp == '0')
+                                bos.write(validElementList.get(parent.getLeftLink()).getElement());
+                            else
+                                bos.write(validElementList.get(parent.getRightLink()).getElement());
+                            now = huffmanTreeNodes[huffmanTree.getRoot()]; // 找到一个原字符后，令为根结点，开始找下一个字节
+                        }
+                    }
+                    bos.flush();
+                    fos.close();
+                    bos.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        producer.start();
+        consumer.start();
+
+        producer.join();
+        consumer.join();
     }
 
 }
