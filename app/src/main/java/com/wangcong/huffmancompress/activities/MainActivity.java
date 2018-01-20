@@ -17,6 +17,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -34,14 +37,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
+    private Toolbar toolbar;
     private ToggleButton btn_mode_choose; // 模式选择（OFF是压缩，ON是解压）
     private ProgressBar progressbar; // 进度环
     private EditText edit_path; // 路径输入框
     private Button btn_select_path; // 文件选择按钮
     private TextView text_info; // 解压缩时状态信息显示区域
     private Button btn_start; // 开始执行解压缩操作
-    private Button btn_about; // 关于按钮
-    private Button btn_exit; // 退出按钮
     private ScrollView scrollview; // 滚动控件
 
     private boolean isCompressMode = true; // 是否是压缩模式标志位
@@ -77,14 +79,13 @@ public class MainActivity extends AppCompatActivity {
      * 绑定视图
      */
     private void bindView() {
+        toolbar = findViewById(R.id.toolbar);
         btn_mode_choose = findViewById(R.id.btn_mode_choose);
         progressbar = findViewById(R.id.progressbar);
         edit_path = findViewById(R.id.edit_path);
         btn_select_path = findViewById(R.id.btn_select_path);
         text_info = findViewById(R.id.text_info);
         btn_start = findViewById(R.id.btn_start);
-        btn_about = findViewById(R.id.btn_about);
-        btn_exit = findViewById(R.id.btn_exit);
         scrollview = findViewById(R.id.scrollview);
     }
 
@@ -92,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
      * 初始化视图或数据
      */
     private void initData() {
+        toolbar.setTitle("");
+        setSupportActionBar(toolbar);
         btn_mode_choose.setChecked(false); // 初始是压缩模式
         progressbar.setVisibility(View.INVISIBLE);
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) { // 初始置入外存根目录
@@ -100,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
             edit_path.setSelection(path.length()
             );
         }
-        updateInfo("欢迎使用！！！");
-        updateInfo("当前模式：压缩模式\n");
+        updateInfo("欢迎使用(＾ω＾)");
+        updateInfo("当前模式：压缩模式");
     }
 
     /**
@@ -114,10 +117,10 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (!b) {
                     isCompressMode = true;
-                    updateInfo("当前模式：压缩模式\n");
+                    updateInfo("当前模式：压缩模式");
                 } else {
                     isCompressMode = false;
-                    updateInfo("当前模式：解压模式\n");
+                    updateInfo("当前模式：解压模式");
                 }
             }
         });
@@ -147,22 +150,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     openResource();
                 }
-            }
-        });
-
-        // 关于按钮监听器
-        btn_about.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showAbout();
-            }
-        });
-
-        // 退出按钮监听器
-        btn_exit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
             }
         });
     }
@@ -300,6 +287,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         dialog.show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_about:
+                showAbout();
+                break;
+            case R.id.menu_exit:
+                finish();
+                break;
+        }
+        return true;
     }
 
     /**

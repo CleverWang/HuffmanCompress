@@ -9,7 +9,7 @@
     android:useLevel="false">
 
 
-    <solid android:color="#ffffff" />
+    <!--<solid android:color="#ffffff" />-->
 
     <stroke
 

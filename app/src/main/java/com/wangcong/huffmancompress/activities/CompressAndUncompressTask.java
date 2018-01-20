@@ -72,7 +72,7 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         File dir = new File(destDir);
         if (!dir.exists()) {
             if (!dir.mkdir()) {
-                publishProgress("保存压缩文件的文件夹创建失败！！！");
+                publishProgress("保存压缩文件的文件夹创建失败>_<");
                 return;
             }
         }
@@ -94,7 +94,7 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         try {
             readingTool.readRawFile(srcFilePath); // 读原始文件获取字节频率信息
         } catch (Exception e) {
-            publishProgress("读取待压缩文件失败：" + e.getMessage());
+            publishProgress("读取待压缩文件失败>_<：" + e.getMessage());
         }
 
         publishProgress("构建哈夫曼树...");
@@ -113,9 +113,9 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
             publishProgress("保存字节频率文件：" + frequencyDestFilePath);
             writingTool.writeFrequencyFile(frequencyDestFilePath); // 保存字节频率信息
         } catch (Exception e) {
-            publishProgress("写入文件失败：" + e.getMessage());
+            publishProgress("写入文件失败>_<：" + e.getMessage());
         }
-        publishProgress("压缩完成(＾ω＾)\n");
+        publishProgress("压缩完成(＾ω＾)");
     }
 
     /**
@@ -130,12 +130,12 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
             String freqFile = dirPath + fileName + ".frequency";
             File file = new File(freqFile);
             if (!file.exists()) {
-                publishProgress("字节频率文件丢失或命名错误！！！");
+                publishProgress("字节频率文件丢失或命名错误>_<");
                 return;
             }
             uncompressing(path, dirPath + fileName, freqFile);
         } else {
-            publishProgress("文件不是本软件产生的压缩文件或命名错误！！！");
+            publishProgress("文件不是本软件产生的压缩文件或命名错误>_<");
         }
     }
 
@@ -154,7 +154,7 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         try {
             readingTool.loadFromFrequencyFile(frequencySrcFilePath); // 从字节频率文件中加载字节列表
         } catch (Exception e) {
-            publishProgress("读取频率文件失败：" + e.getMessage());
+            publishProgress("读取频率文件失败>_<：" + e.getMessage());
         }
 
         publishProgress("重建哈夫曼树...");
@@ -168,9 +168,9 @@ public class CompressAndUncompressTask extends AsyncTask<Void, String, Void> {
         try {
             decoding.doDecoding(srcFilePath, destFilePath); // 进行解压操作
         } catch (Exception e) {
-            publishProgress("解压文件失败：" + e.getMessage());
+            publishProgress("解压文件失败>_<：" + e.getMessage());
         }
 
-        publishProgress("解压完成(＾ω＾)\n");
+        publishProgress("解压完成(＾ω＾)");
     }
 }

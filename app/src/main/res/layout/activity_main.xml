@@ -1,198 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <RelativeLayout
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ToggleButton
+                        android:id="@+id/btn_mode_choose"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:layout_centerInParent="true"
+                        android:background="@drawable/selector_btn_circle"
+                        android:gravity="center"
+                        android:textOff="@string/uncompress"
+                        android:textOn="@string/compress"
+                        android:textSize="20sp" />
+
+                    <ProgressBar
+                        android:id="@+id/progressbar"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_centerInParent="true" />
+
+                </RelativeLayout>
+            </LinearLayout>
+        </android.support.v7.widget.Toolbar>
+
+        <android.support.v7.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center">
-
-            <ToggleButton
-                android:id="@+id/btn_mode_choose"
-                android:layout_width="90dp"
-                android:layout_height="90dp"
-                android:layout_centerInParent="true"
-                android:background="@drawable/selector_btn_circle"
-                android:gravity="center"
-                android:textColor="#494a4a"
-                android:textOff="@string/uncompress"
-                android:textOn="@string/compress"
-                android:textSize="20sp" />
-
-            <ProgressBar
-                android:id="@+id/progressbar"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_centerInParent="true" />
-
-        </RelativeLayout>
-    </LinearLayout>
-
-    <!--<android.support.v7.widget.CardView-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="0dp"-->
-    <!--android:layout_margin="10dp"-->
-    <!--android:layout_weight="3"-->
-    <!--app:cardCornerRadius="8dp">-->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="3">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_margin="10dp"
+            app:cardCornerRadius="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/rectangle"
-                android:orientation="horizontal"
-                android:padding="5dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/file_path" />
-
-                <EditText
-                    android:id="@+id/edit_path"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:inputType="textUri" />
-
-                <Button
-                    android:id="@+id/btn_select_path"
-                    android:layout_width="40dp"
-                    android:layout_height="30dp"
-                    android:background="@drawable/selector_btn_round_rect"
-                    android:text="@string/select_path" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/rectangle"
                 android:orientation="vertical">
-
-                <ScrollView
-                    android:id="@+id/scrollview"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:padding="5dp">
-
-                    <TextView
-                        android:id="@+id/text_info"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textColor="#000000" />
-
-                </ScrollView>
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/rectangle">
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/file_path" />
+
+                        <EditText
+                            android:id="@+id/edit_path"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:inputType="textUri" />
+
+                        <Button
+                            android:id="@+id/btn_select_path"
+                            android:layout_width="40dp"
+                            android:layout_height="30dp"
+                            android:background="@drawable/selector_btn_round_rect"
+                            android:text="@string/select_path" />
+                    </LinearLayout>
 
                     <Button
                         android:id="@+id/btn_start"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="40dp"
                         android:layout_gravity="center"
-                        android:background="@drawable/selector_btn_rect"
+                        android:layout_margin="5dp"
+                        android:background="@drawable/selector_btn_round_rect"
                         android:text="@string/start" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </LinearLayout>
 
-
-    <!--</android.support.v7.widget.CardView>-->
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.5"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"
-                    android:background="@drawable/circle_btn"
-                    android:padding="5dp">
-
-                    <Button
-                        android:id="@+id/btn_about"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:background="@drawable/ic_info_black_48dp" />
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <ScrollView
+                    android:id="@+id/scrollview"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/about"
-                    android:textSize="12sp" />
+                    android:layout_margin="5dp">
+
+                    <TextView
+                        android:id="@+id/text_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                </ScrollView>
             </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"
-                    android:background="@drawable/circle_btn"
-                    android:padding="5dp">
-
-                    <Button
-                        android:id="@+id/btn_exit"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-
-                        android:background="@drawable/ic_exit_to_app_black_48dp"
-                        android:gravity="center" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/exit"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-        </LinearLayout>
+        </android.support.v7.widget.CardView>
     </LinearLayout>
-
 
 </LinearLayout>
