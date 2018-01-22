@@ -47,10 +47,13 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView scrollview; // 滚动控件
 
     private boolean isCompressMode = true; // 是否是压缩模式标志位
+    private boolean isRunning = false; // 是否执行后台任务标志位
 
     private UpdateUIListener updateUIListener = new UpdateUIListener() { // UI操作监听器实例
         @Override
         public void onStart() {
+            isRunning = true; // 执行标志位置为真
+            btn_mode_choose.setClickable(false); // 执行任务时不能模式切换
             progressbar.setVisibility(View.VISIBLE); // 显示进度环
         }
 
@@ -61,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onFinish() {
+            isRunning = false; // 执行标志位置为假
+            btn_mode_choose.setClickable(true); // 执行任务完成后可以模式切换
             progressbar.setVisibility(View.INVISIBLE); // 关闭进度环
         }
     };
@@ -129,14 +134,18 @@ public class MainActivity extends AppCompatActivity {
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // 运行时权限获取
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-                } else {
+                if (!isRunning) { // 无后台任务运行
+                    // 运行时权限获取
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                    } else {
 //                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, progressbar, text_info, scrollview).execute();
-                    // 执行后台解压缩任务
-                    new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, updateUIListener).execute();
+                        // 执行后台解压缩任务
+                        new CompressAndUncompressTask(edit_path.getText().toString(), isCompressMode, updateUIListener).execute();
 //                    doCompressAndUncompress();
+                    }
+                } else { // 有后台任务运行
+                    Toast.makeText(MainActivity.this, "请等待当前任务完成！", Toast.LENGTH_SHORT).show();
                 }
             }
         });
